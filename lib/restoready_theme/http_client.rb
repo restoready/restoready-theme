@@ -103,8 +103,13 @@ module RestoreadyTheme
       end
     end
 
-    def check_config
-      restoready.get(basepath, headers: headers).code == 200
+    def check_theme
+      response = client.get do |req|
+        req.url "/api/v1/tenant"
+        req.headers['Authorization'] = token
+        req.headers['Accept'] = 'application/json'
+      end
+      response
     end
 
     def is_creatable?(asset)

@@ -35,19 +35,11 @@ module RestoreadyTheme
       map shortcut => command.to_sym
     end
 
-    desc "check", "Vérifie la configuration."
-    def check
-      if http_client.check_config
-        say("Configuration [OK]", :green)
-      else
-        say("Configuration [FAIL]", :red)
-      end
-    end
-
     desc "configurer API_KEY RESTOREADY THEME_ID", "Génere un fichier de config."
     def configure(api_key=nil, restoready=nil, theme_id=nil)
       config = {api_key: api_key, restoready: restoready, theme_id: theme_id}
       create_file('config.yml', config.to_yaml)
+      check
     end
 
     desc "open", "Ouvre le theme restoready dans le navigateur."
@@ -60,6 +52,7 @@ module RestoreadyTheme
     desc "upload FILE", "Upload tous les assets du thème dans RestoReady."
     method_option :quiet, type: :boolean, default: false
     def upload(*keys)
+      check
       assets = keys.empty? ? local_assets_list : keys
       assets.each do |asset|
         send_asset(asset, options['quiet'])
@@ -70,6 +63,7 @@ module RestoreadyTheme
     desc "replace FILE", "Remplace complètement le thème en ligne par le thème en locale."
     method_option :quiet, type: :boolean, default: false
     def replace(*keys)
+      check
       say("Êtes-vous sur de vouloir remplacer entièrement le thème en ligne par celui en locale? Cette action est irréversible.", :yellow)
       if ask("Continue? (Y/N): ") == "Y"
         # only delete files on remote that are not present locally
@@ -89,6 +83,7 @@ module RestoreadyTheme
     desc "remove FILE", "Supprime les assets voulus du thème."
     method_option :quiet, type: :boolean, default: false
     def remove(*keys)
+      check
       keys.each do |key|
         delete_asset(key, options['quiet'])
       end
@@ -99,6 +94,7 @@ module RestoreadyTheme
     method_option :quiet, type: :boolean, default: false
     method_option :keep_files, type: :boolean, default: false
     def watch
+      check
       puts "Surveille le répertoire courant: #{Dir.pwd}"
       watcher do |filename, event|
         filename = filename.gsub("#{Dir.pwd}/", '')
@@ -274,6 +270,21 @@ module RestoreadyTheme
 
       return true unless local_assets_list_tmp.include?(filename)
       (pref != 'assets' && pref != 'snippets' && event == :new) || (pref != 'assets' && pref != 'snippets' && event == :delete)
+    end
+
+    def check
+      response = show_during("[#{timestamp}] Vérification de la configuration.") do
+        http_client.check_theme
+      end
+
+      if !response.success?
+        report_error(Time.now, "Configuration [FAIL]", response)
+        exit
+      elsif JSON.parse(response.body)['tenant']['theme_id'] == config[:theme_id].to_i
+        say("Configuration [FAIL] : Le thème id renseigné ne doit pas être celui actif en ligne.", :red)
+        exit
+      end
+      say("Configuration [OK]", :green)
     end
   end
 end
