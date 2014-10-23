@@ -231,7 +231,7 @@ module RestoreadyTheme
     def binary_file?(path)
       mime = MimeMagic.by_path(path)
       say("'#{path}' est un file-type inconnu, mise à jour de l'asset sous forme binaire.", :yellow) if mime.nil? && ENV['TEST'] != 'true'
-      mime.nil? || !mime.text?
+      mime.nil? || (!mime.text? && mime.subtype != "svg+xml")
     end
 
     def report_error(time, message, response)
