@@ -1,4 +1,7 @@
 ENV['TEST'] = 'true'
-require 'minitest/autorun'
-require 'pry'
-require 'pry-debugger'
+require 'bundler/setup'
+Bundler.setup
+
+RSpec.configure do |config|
+  # some (optional) config here
+end
