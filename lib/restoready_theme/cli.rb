@@ -177,9 +177,9 @@ module RestoreadyTheme
 
       if binary_file?(asset) || http_client.is_binary_data?(content)
         content = File.open(asset, "rb") { |io| io.read }
-        data.merge!(value: Base64.encode64(content), content_type: "image")
+        data.merge!(value: Base64.encode64(content), content_type: MimeMagic.by_path(asset).type)
       else
-        data.merge!(value: content, content_type: "")
+        data.merge!(value: content, content_type: MimeMagic.by_path(asset).type)
       end
 
       update_response = show_during("[#{timestamp}] Mise à jour: #{asset}.", quiet) do
