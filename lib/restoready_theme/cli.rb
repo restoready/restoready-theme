@@ -242,8 +242,7 @@ module RestoreadyTheme
     def errors_from_response(response)
       object = {status: response.status}
 
-      # errors = response.parsed_response ? response.parsed_response["errors"] : response.body
-      errors = JSON.parse(response.body)[:errors]
+      errors = JSON.parse(response.body)['errors']
 
       object[:errors] = case errors
       when NilClass
