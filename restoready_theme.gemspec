@@ -15,7 +15,6 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "restoready_theme"
   s.add_dependency('thor', '~> 0.14')
-  s.add_dependency('httparty', '~> 0.13')
   s.add_dependency('faraday', '~> 0.9')
   s.add_dependency('json', '~> 1.8')
   s.add_dependency('mimemagic', '~> 0')
@@ -23,9 +22,6 @@ Gem::Specification.new do |s|
   s.add_dependency('launchy', '~> 0')
 
   s.add_development_dependency 'rake', '~> 0'
-  s.add_development_dependency 'minitest', '~> 5.0', '>= 5.0.0'
-  s.add_development_dependency 'pry', '~> 0'
-  s.add_development_dependency 'pry-debugger', '~> 0'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
