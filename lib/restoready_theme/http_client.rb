@@ -3,8 +3,9 @@ module RestoreadyTheme
   class HttpClient
     attr_accessor :client
 
-    def initialize
-      @client = ::Faraday.new(url: "http://#{config[:restoready]}")
+    def initialize(base_uri=nil)
+      base_uri = base_uri.nil? ? config[:restoready] : base_uri
+      @client = ::Faraday.new(url: "http://#{base_uri}")
     end
 
     def test?
@@ -12,8 +13,6 @@ module RestoreadyTheme
     end
 
     def asset_list
-      # restoready parser chokes on assest listing, have it noop
-      # and then use a rel JSON parser.
       response = client.get do |req|
         req.url "#{basepath}"
         req.headers['Authorization'] = token
