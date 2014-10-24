@@ -36,8 +36,8 @@ module RestoreadyTheme
     end
 
     desc "configurer API_KEY RESTOREADY THEME_ID", "Génere un fichier de config."
-    def configure(api_key=nil, restoready=nil, theme_id=nil)
-      config = {api_key: api_key, restoready: restoready, theme_id: theme_id}
+    def configure(api_key=nil, api_url=nil, site_url = nil, theme_id=nil)
+      config = {api_key: api_key, api_url: api_url, site_url: site_url, theme_id: theme_id}
       create_file('config.yml', config.to_yaml)
       check
     end
@@ -131,8 +131,8 @@ module RestoreadyTheme
     end
 
     def restoready_theme_url
-      url = config[:restoready]
-      url += "?preview_theme_id=#{config[:theme_id]}" if config[:theme_id] && config[:theme_id].to_i > 0
+      url = config[:site_url] ||= ""
+      url += "/fr?preview_theme_id=#{config[:theme_id]}" if config[:theme_id] && config[:theme_id].to_i > 0
       url
     end
 
@@ -186,7 +186,6 @@ module RestoreadyTheme
         return
       end
 
-      # if !http_client.is_creatable?(asset) || update_response.code != 404
       if !http_client.is_creatable?(asset) || update_response.status != 404
         report_error(Time.now, "Impossible de mettre à jour #{asset}.", update_response)
         return
@@ -291,7 +290,7 @@ module RestoreadyTheme
         report_error(Time.now, "Configuration [FAIL]", response)
         exit
       elsif JSON.parse(response.body)['tenant']['theme_id'] == config[:theme_id].to_i
-        say("Configuration [FAIL] : Le thème id renseigné ne doit pas être celui actif en ligne.", :red)
+        say("Configuration [FAIL] : Le thème renseigné ne doit pas être celui activé en ligne.", :red)
         exit
       end
     end

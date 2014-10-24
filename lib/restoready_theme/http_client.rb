@@ -3,9 +3,9 @@ module RestoreadyTheme
   class HttpClient
     attr_accessor :client
 
-    def initialize(base_uri=nil)
-      base_uri = base_uri.nil? ? config[:restoready] : base_uri
-      @client = ::Faraday.new(url: "http://#{base_uri}")
+    def initialize(api_url = nil)
+      # api_url = base_url.nil? ? config[:api_url] : base_url
+      @client = ::Faraday.new(url: api_url ||= config[:api_url])
     end
 
     def test?
