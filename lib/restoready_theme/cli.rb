@@ -35,21 +35,21 @@ module RestoreadyTheme
       map shortcut => command.to_sym
     end
 
-    desc "configurer API_KEY RESTOREADY THEME_ID", "Génere un fichier de config."
+    desc "configure API_KEY API_URL SITE_URL THEME_ID", "generate a config file for the site to connect to"
     def configure(api_key=nil, api_url=nil, site_url = nil, theme_id=nil)
       config = {api_key: api_key, api_url: api_url, site_url: site_url, theme_id: theme_id}
       create_file('config.yml', config.to_yaml)
       check
     end
 
-    desc "open", "Ouvre le theme restoready dans le navigateur."
+    desc "open", "open the site in your browser"
     def open(*keys)
       if Launchy.open restoready_theme_url
-        say("Fini.", :green)
+        say("Done.", :green)
       end
     end
 
-    desc "upload FILE", "Upload tous les assets du thème dans RestoReady."
+    desc "upload FILE", "upload all theme assets to theme"
     method_option :quiet, type: :boolean, default: false
     def upload(*keys)
       check
@@ -57,14 +57,14 @@ module RestoreadyTheme
       assets.each do |asset|
         send_asset(asset, options['quiet'])
       end
-      say("Fini.", :green) unless options['quiet']
+      say("Done.", :green) unless options['quiet']
     end
 
-    desc "replace FILE", "Remplace complètement le thème en ligne par le thème en locale."
+    desc "replace FILE", "completely replace restoready theme assets with local theme assets"
     method_option :quiet, type: :boolean, default: false
     def replace(*keys)
       check
-      say("Êtes-vous sur de vouloir remplacer entièrement le thème en ligne par celui en locale? Cette action est irréversible.", :yellow)
+      say("Are you sure you want to completely replace your restoready theme assets? This is not undoable.", :yellow)
       if ask("Continue? (Y/N): ") == "Y"
         # only delete files on remote that are not present locally
         # files present on remote and present locally get overridden anyway
@@ -76,21 +76,21 @@ module RestoreadyTheme
         local_assets.each do |asset|
           send_asset(asset, options['quiet'])
         end
-        say("Fini.", :green) unless options['quiet']
+        say("Done.", :green) unless options['quiet']
       end
     end
 
-    desc "remove FILE", "Supprime les assets voulus du thème."
+    desc "remove FILE", "remove theme asset"
     method_option :quiet, type: :boolean, default: false
     def remove(*keys)
       check
       keys.each do |key|
         delete_asset(key, options['quiet'])
       end
-      say("Fini.", :green) unless options['quiet']
+      say("Done.", :green) unless options['quiet']
     end
 
-    desc "watch", "Surveille tous changements dans le thème locale et reporte ces changements en ligne, utiliser le flag --keep_files pour désactiver la suppréssion des fichiers."
+    desc "watch", "upload and delete individual theme assets as they change, use the --keep_files flag to disable remote file deletion"
     method_option :quiet, type: :boolean, default: false
     method_option :keep_files, type: :boolean, default: false
     def watch
@@ -105,14 +105,14 @@ module RestoreadyTheme
         elsif event == :delete
           :delete_asset
         else
-          raise NotImplementedError, "Évenement inconu -- #{event} -- #{filename}"
+          raise NotImplementedError, "Unknown event -- #{event} -- #{filename}"
         end
 
         send(action, filename, options['quiet'])
       end
     end
 
-    desc "systeminfo", "Affiche les informations système et les librairies chargées pour soumettre les rapports de bug."
+    desc "systeminfo", "print out system information and actively loaded libraries for aiding in submitting bug reports"
     def systeminfo
       ruby_version = "#{RUBY_VERSION}"
       ruby_version += "-p#{RUBY_PATCHLEVEL}" if RUBY_PATCHLEVEL
@@ -178,29 +178,29 @@ module RestoreadyTheme
         data.merge!(value: content, content_type: MimeMagic.by_path(asset).type)
       end
 
-      update_response = show_during("[#{timestamp}] Mise à jour: #{asset}.", quiet) do
+      update_response = show_during("[#{timestamp}] Uploading: #{asset}", quiet) do
         http_client.update_asset(data)
       end
       if update_response.success?
-        say("[#{timestamp}] #{asset} mise à jour.", :green) unless quiet
+        say("[#{timestamp}] Uploaded: #{asset}", :green) unless quiet
         return
       end
 
       if !http_client.is_creatable?(asset) || update_response.status != 404
-        report_error(Time.now, "Impossible de mettre à jour #{asset}.", update_response)
+        report_error(Time.now, "Could not upload #{asset}", update_response)
         return
       end
 
-      create_response = show_during("[#{timestamp}] Création: #{asset}.", quiet) do
+      create_response = show_during("[#{timestamp}] Creating: #{asset}", quiet) do
         http_client.create_asset(data)
       end
       if create_response.success?
-        say("[#{timestamp}] #{asset} créé.", :green) unless quiet
+        say("[#{timestamp}] #{asset} create", :green) unless quiet
         return
       end
-      report_error(Time.now, "Impossible de créer #{asset}.", create_response)
+      report_error(Time.now, "Could not created #{asset}", create_response)
     rescue Errno::ENOENT
-      say("[#{timestamp}] #{asset} introuvable dans le dépôt locale.", :red)
+      say("[#{timestamp}] #{asset} not found in the local repository", :red)
       exit
     end
 
@@ -212,35 +212,35 @@ module RestoreadyTheme
       if asset_getting['response'].success?
         data.merge!(id: asset_getting['id'])
       else
-        report_error(Time.now, "#{key} introuvable.", asset_getting['response'])
+        report_error(Time.now, "#{key} not found.", asset_getting['response'])
       end
 
-      response = show_during("[#{timestamp}] Suppréssion: #{key}.", quiet) do
+      response = show_during("[#{timestamp}] Removing: #{key}", quiet) do
         http_client.delete_asset(data)
       end
       if response.success?
-        say("[#{timestamp}] #{key} supprimé.", :green) unless quiet
+        say("[#{timestamp}] Removed: #{key}", :green) unless quiet
       else
-        report_error(Time.now, "Impossible de supprimer #{key}.", response)
+        report_error(Time.now, "Could not deleted #{key}", response)
       end
     end
 
     def valid?(key)
       return true if DEFAULT_WHITELIST.include?(key.split('/').first + "/")
-      say("'#{key}' n'est pas un fichier valide pour la mise à jour.", :yellow)
-      say("Les fichiers ont besoin de se trouver dans les sous dossiers #{DEFAULT_WHITELIST.join(' ')}.", :yellow)
+      say("'#{key}' is not in a valid file for theme uploads", :yellow)
+      say("Files need to be in one of the following subdirectories: #{DEFAULT_WHITELIST.join(' ')}", :yellow)
       false
     end
 
     def binary_file?(path)
       mime = MimeMagic.by_path(path)
-      say("'#{path}' est un file-type inconnu, mise à jour de l'asset sous forme binaire.", :yellow) if mime.nil? && ENV['TEST'] != 'true'
+      say("'#{path}' is an unknown file-type, uploading asset as binary", :yellow) if mime.nil? && ENV['TEST'] != 'true'
       mime.nil? || (!mime.text? && mime.subtype != "svg+xml")
     end
 
     def report_error(time, message, response)
       say("[#{timestamp(time)}] Error: #{message}", :red)
-      say("Details d'erreur : #{errors_from_response(response)}", :yellow)
+      say("Error Details: #{errors_from_response(response)}", :yellow)
       exit
     end
 
@@ -282,7 +282,7 @@ module RestoreadyTheme
     end
 
     def check
-      response = show_during("[#{timestamp}] Vérification de la configuration.") do
+      response = show_during("[#{timestamp}] Configuration check") do
         http_client.check_theme
       end
 
@@ -290,7 +290,7 @@ module RestoreadyTheme
         report_error(Time.now, "Configuration [FAIL]", response)
         exit
       elsif JSON.parse(response.body)['tenant']['theme_id'] == config[:theme_id].to_i
-        say("Configuration [FAIL] : Le thème renseigné ne doit pas être celui activé en ligne.", :red)
+        say("Configuration [FAIL] : Can't edit an active theme", :red)
         exit
       end
     end
