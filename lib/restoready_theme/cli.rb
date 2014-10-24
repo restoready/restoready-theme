@@ -208,7 +208,13 @@ module RestoreadyTheme
     def delete_asset(key, quiet=false)
       return unless valid?(key)
       data = {key: key}
-      data.merge!(id: http_client.get_asset_id(key)['id'])
+
+      asset_getting = http_client.get_asset_id(key)
+      if asset_getting['response'].success?
+        data.merge!(id: asset_getting['id'])
+      else
+        report_error(Time.now, "#{key} introuvable.", asset_getting['response'])
+      end
 
       response = show_during("[#{timestamp}] Suppréssion: #{key}.", quiet) do
         http_client.delete_asset(data)
