@@ -200,6 +200,9 @@ module RestoreadyTheme
         return
       end
       report_error(Time.now, "Impossible de créer #{asset}.", create_response)
+    rescue Errno::ENOENT
+      say("[#{timestamp}] #{asset} introuvable dans le dépôt locale.", :red)
+      exit
     end
 
     def delete_asset(key, quiet=false)
