@@ -288,7 +288,6 @@ module RestoreadyTheme
         say("Configuration [FAIL] : Le thème id renseigné ne doit pas être celui actif en ligne.", :red)
         exit
       end
-      say("Configuration [OK]", :green)
     end
   end
 end
