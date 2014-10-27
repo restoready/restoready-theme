@@ -274,7 +274,6 @@ module RestoreadyTheme
     def report_error(time, message, response)
       say("[#{timestamp(time)}] Error: #{message}", :red)
       say("Error Details: #{errors_from_response(response)}", :yellow)
-      exit
     end
 
     def errors_from_response(response)
