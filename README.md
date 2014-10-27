@@ -21,13 +21,19 @@ To install the restoready_theme gem use 'gem install'.
 gem install restoready_theme
 ```
 
-or add this line in Gemfile
+or add this line in Gemfile and run `bundle install`
 
 ```
 gem restoready_theme
 ```
 
 to update to the latest version
+
+```
+gem update restoready_theme
+```
+
+to download the thème given in config
 
 ```
 gem update restoready_theme
