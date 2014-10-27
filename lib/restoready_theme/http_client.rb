@@ -24,15 +24,15 @@ module RestoreadyTheme
       assets.reject{|a| assets.include?("#{a}.liquid") }
     end
 
-    def get_asset_id(key)
+    def get_asset(key)
       asset = {}
       response = client.get do |req|
-        req.url "#{basepath}/id_by_key?key=#{key}"
+        req.url "#{basepath}/show_by_key?key=#{key}"
         req.headers['Authorization'] = token
         req.headers['Accept'] = 'application/json'
       end
 
-      asset['id'] = response.status == 200 ? JSON.parse(response.body)["asset"]["id"] : ''
+      asset = response.status == 200 ? JSON.parse(response.body)["asset"] : {}
       asset['response'] = response
       asset
     end

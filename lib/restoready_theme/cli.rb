@@ -49,6 +49,23 @@ module RestoreadyTheme
       end
     end
 
+    desc "download FILE", "download all the theme files"
+    method_option :quiet, :type => :boolean, :default => false
+    method_option :exclude
+    def download(*keys)
+      assets = keys.empty? ? http_client.asset_list : keys
+
+      if options['exclude']
+        assets = assets.delete_if { |asset| asset =~ Regexp.new(options['exclude']) }
+      end
+
+      assets.each do |asset|
+        download_asset(asset)
+        say("Downloaded: #{asset}", :green) unless options['quiet']
+      end
+      say("Done.", :green) unless options['quiet']
+    end
+
     desc "upload FILE", "upload all theme assets to theme"
     method_option :quiet, type: :boolean, default: false
     def upload(*keys)
@@ -161,12 +178,28 @@ module RestoreadyTheme
       end
     end
 
+    def download_asset(key)
+      return unless valid?(key)
+      asset = http_client.get_asset(key)
+      if asset['value']
+        # For CRLF line endings
+        content = asset['value'].gsub("\r", "")
+        format = "w"
+      elsif asset['attachment']
+        content = Base64.decode64(asset['attachment'])
+        format = "w+b"
+      end
+
+      FileUtils.mkdir_p(File.dirname(key))
+      File.open(key, format) {|f| f.write content} if content
+    end
+
     def send_asset(asset, quiet=false)
       return unless valid?(asset)
       data = {key: asset}
       content = File.read(asset)
 
-      asset_getting = http_client.get_asset_id(asset)
+      asset_getting = http_client.get_asset(asset)
       if asset_getting['response'].success?
         data.merge!(id: asset_getting['id'])
       end
@@ -208,7 +241,7 @@ module RestoreadyTheme
       return unless valid?(key)
       data = {key: key}
 
-      asset_getting = http_client.get_asset_id(key)
+      asset_getting = http_client.get_asset(key)
       if asset_getting['response'].success?
         data.merge!(id: asset_getting['id'])
       else
