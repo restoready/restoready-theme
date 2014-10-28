@@ -55,7 +55,7 @@ describe RestoreadyTheme::Cli do
 
   it "should generate the restoready path URL to the query parameter preview_theme_id if the id is present" do
     @cli.mock_config = {site_url: 'somethingfancy.com', theme_id: 12345}
-    expect(@cli.restoready_theme_url).to eq "somethingfancy.com?preview_theme_id=12345"
+    expect(@cli.restoready_theme_url).to eq "somethingfancy.com/fr?preview_theme_id=12345"
   end
 
   it "should generate the restoready path URL withouth the preview_theme_id if the id is not present" do
