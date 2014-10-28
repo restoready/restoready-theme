@@ -96,3 +96,9 @@ Open the site in the default browser
 ```
 theme open
 ```
+
+Bootstrap a new theme with [Starter](https://github.com/restoready/starter)
+
+```
+theme bootstrap api_key api_url site_url theme_name
+```

@@ -3,9 +3,16 @@ module RestoreadyTheme
   class HttpClient
     attr_accessor :client
 
-    def initialize(api_url = nil)
-      # api_url = base_url.nil? ? config[:api_url] : base_url
-      @client = ::Faraday.new(url: api_url ||= config[:api_url])
+    STARTER_ZIP = "https://codeload.github.com/restoready/starter/zip/master"
+
+    def initialize(api_url = nil, api_key = nil)
+      @api_key = api_key || config[:api_key]
+      @client = Faraday.new(url: api_url ||= config[:api_url]) do |conn|
+        conn.request :multipart
+        conn.request :url_encoded
+
+        conn.adapter :net_http
+      end
     end
 
     def test?
@@ -68,6 +75,31 @@ module RestoreadyTheme
       response
     end
 
+    def get_starter
+      source = STARTER_ZIP
+      response = client.get do |req|
+        req.url "#{source}"
+        req.headers['Authorization'] = token
+        req.headers['Accept'] = 'application/zip'
+        req.headers['Accept-Encoding'] = 'gzip'
+      end
+      response.status == 200 ? response.body : nil
+    end
+
+    def install_starter(theme_name)
+      Dir.mktmpdir do |dir|
+        File.open("#{dir}/starter-master.zip", 'wb') { |fp| fp.write(get_starter) }
+        response = client.post do |req|
+          req.url "/api/v1/themes"
+          req.headers['Authorization'] = token
+          req.body = {theme: {file: Faraday::UploadIO.new("#{dir}/starter-master.zip", 'application/zip'), name: theme_name}}
+        end
+        theme = response.status == 200 ? JSON.parse(response.body) : {}
+        theme.merge!(response: response)
+        theme
+      end
+    end
+
     def config
       @config ||= if File.exist? 'config.yml'
         config = YAML.load(File.read('config.yml'))
@@ -117,8 +149,8 @@ module RestoreadyTheme
 
     private
 
-      def token
-        "Token token=\"#{config[:api_key]}\""
-      end
+    def token
+      "Token token=\"#{@api_key}\""
+    end
   end
 end

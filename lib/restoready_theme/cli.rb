@@ -42,6 +42,30 @@ module RestoreadyTheme
       check
     end
 
+    desc "bootstrap API_KEY API_URL SITE_URL THEME_NAME", "bootstrap with Starter to site and configure local directory."
+    def bootstrap(api_key=nil, api_url=nil, site_url = nil, theme_name = 'starter')
+      config = {:api_key => api_key, :api_url => api_url, :site_url => site_url}
+
+      say("Creating directory named #{theme_name}", :green)
+      if File.directory?(theme_name)
+        say("Directory #{theme_name} existing, choose another theme name", :red)
+        exit
+      else
+        empty_directory(theme_name)
+      end
+
+      say("Registering #{theme_name} theme on #{site_url}", :green)
+      theme_info = RestoreadyTheme::HttpClient.new(api_url, api_key).install_starter(theme_name)
+
+      say("Saving configuration to #{theme_name}", :green)
+      config.merge!(theme_id: theme_info['id'])
+      create_file("#{theme_name}/config.yml", config.to_yaml)
+
+      say("Downloading #{theme_name} assets from RestoReady")
+      Dir.chdir(theme_name)
+      download()
+    end
+
     desc "open", "open the site in your browser"
     def open(*keys)
       if Launchy.open restoready_theme_url
