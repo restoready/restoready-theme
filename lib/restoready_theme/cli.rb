@@ -136,7 +136,7 @@ module RestoreadyTheme
     method_option :keep_files, type: :boolean, default: false
     def watch
       check
-      puts "Surveille le répertoire courant: #{Dir.pwd}"
+      puts "Watching current folder: #{Dir.pwd}"
       watcher do |filename, event|
         filename = filename.gsub("#{Dir.pwd}/", '')
 
