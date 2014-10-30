@@ -1,3 +1,7 @@
+# v1.0.0
+
+* stable version
+
 # v0.0.3
 
 * Add bootstrap command (with Starter)
