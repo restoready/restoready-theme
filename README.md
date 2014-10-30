@@ -33,18 +33,18 @@ to update to the latest version
 gem update restoready_theme
 ```
 
-to download the thème given in config
-
-```
-gem update restoready_theme
-```
-
 # Usage
 
 Generate the config file. To choose the theme you want to edit, add `theme_id`.
 
 ```
 theme configure api_key api_url site_url theme_id
+```
+
+Or bootstrap a new theme with [Starter](https://github.com/restoready/starter)
+
+```
+theme bootstrap api_key api_url site_url theme_name
 ```
 
 Example of config.yml. You can use `:whitelist_files:` to specify files for upload. The `assets/`, `config/`,
@@ -79,6 +79,12 @@ Remove a theme file
 theme remove assets/layout.liquid
 ```
 
+to download the thème given in config
+
+```
+theme download
+```
+
 Completely replace theme assets with the local assets
 
 ```
@@ -95,10 +101,4 @@ Open the site in the default browser
 
 ```
 theme open
-```
-
-Bootstrap a new theme with [Starter](https://github.com/restoready/starter)
-
-```
-theme bootstrap api_key api_url site_url theme_name
 ```
