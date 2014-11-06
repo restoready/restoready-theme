@@ -1,3 +1,7 @@
+# v1.0.1
+
+* fix bug on bootstrap command (wrong copy of binary files)
+
 # v1.0.0
 
 * stable version
