@@ -205,14 +205,9 @@ module RestoreadyTheme
     def download_asset(key)
       return unless valid?(key)
       asset = http_client.get_asset(key)
-      if asset['value']
-        # For CRLF line endings
-        content = asset['value'].gsub("\r", "")
-        format = "w"
-      elsif asset['attachment']
-        content = Base64.decode64(asset['attachment'])
-        format = "w+b"
-      end
+      content = asset['value']
+      format = "w+b"
+      content = Base64.decode64(content) if binary_file?(key)
 
       FileUtils.mkdir_p(File.dirname(key))
       File.open(key, format) {|f| f.write content} if content
